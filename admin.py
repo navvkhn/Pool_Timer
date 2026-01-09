@@ -1,6 +1,7 @@
 import streamlit as st
-import json, os
+from utils.auth import verify_pin
 from datetime import datetime
+import json, os
 from utils.qr import generate_qr
 
 DATA_FILE = "data/sessions.json"
@@ -14,7 +15,28 @@ def load_data():
 def save_data(data):
     json.dump(data, open(DATA_FILE, "w"), indent=2)
 
-st.title("🎱 Pool Table Admin")
+# 🔐 SESSION STATE
+if "admin_logged_in" not in st.session_state:
+    st.session_state.admin_logged_in = False
+
+st.title("🎱 Pool Timer Admin")
+
+# 🔐 PIN SCREEN
+if not st.session_state.admin_logged_in:
+    pin = st.text_input("Enter Admin PIN", type="password")
+
+    if st.button("Login"):
+        if verify_pin(pin):
+            st.session_state.admin_logged_in = True
+            st.success("Access Granted ✅")
+            st.rerun()
+        else:
+            st.error("Invalid PIN ❌")
+
+    st.stop()
+
+# ✅ ADMIN CONTROLS
+st.success("Logged in as Admin")
 
 table = st.selectbox("Table", ["table_1", "table_2"])
 name = st.text_input("Customer Name")
@@ -33,5 +55,9 @@ if st.button("▶ Start Game"):
     url = f"https://YOUR_STREAMLIT_URL/?table={table}"
     qr = generate_qr(url)
 
-    st.success("Game Started")
     st.image(qr, caption="Customer QR Code")
+
+# 🔓 LOGOUT
+if st.button("Logout"):
+    st.session_state.admin_logged_in = False
+    st.rerun()
