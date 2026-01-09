@@ -1,6 +1,5 @@
 import streamlit as st
-import json
-import os
+import json, os
 from utils.billing import calculate_bill
 from streamlit_autorefresh import st_autorefresh
 
@@ -11,34 +10,23 @@ st.set_page_config(
 )
 
 DATA_FILE = os.path.join("data", "sessions.json")
-
-# Auto-refresh for customer view
 st_autorefresh(interval=5000, key="refresh")
 
-# Read QR param
 table = st.query_params.get("table")
 
 st.title("🎱 Pool Timer")
 
-# -----------------------------
-# CUSTOMER LANDING
-# -----------------------------
 if not table:
     st.info("Scan the QR code on your table")
 
-    st.divider()
-    st.subheader("🔐 Staff Access")
-
-    # IMPORTANT: absolute link
-    st.link_button(
-        "Admin Login",
-        "/admin"
+    st.markdown(
+        """
+        ### 🔐 Staff
+        Use the **sidebar → Admin** to login
+        """
     )
     st.stop()
 
-# -----------------------------
-# CUSTOMER SESSION VIEW
-# -----------------------------
 if not os.path.exists(DATA_FILE):
     st.warning("No active session")
     st.stop()
