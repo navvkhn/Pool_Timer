@@ -6,11 +6,10 @@ st.set_page_config(
     layout="centered"
 )
 
+# 🚀 Auto redirect to Admin page
 st.markdown(
     """
-    <div style="text-align:center; margin-top:40vh;">
-        <h1>🎱 Pool Timer</h1>
-    </div>
+    <meta http-equiv="refresh" content="0; url=/1_Admin">
     """,
     unsafe_allow_html=True
 )
