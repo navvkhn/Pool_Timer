@@ -10,29 +10,37 @@ st.set_page_config(
 )
 
 DATA_FILE = "data/sessions.json"
+
+# 🔄 Auto refresh for customer view
 st_autorefresh(interval=5000, key="refresh")
 
+# Read table from QR
 query = st.query_params
 table = query.get("table", [None])[0]
 
 st.title("🎱 Pool Timer")
 
-# ───────── CUSTOMER LANDING ─────────
+# ─────────────────────────────
+# 🧑 CUSTOMER LANDING (NO QR)
+# ─────────────────────────────
 if not table:
     st.info("Scan the QR code on your table")
 
     st.divider()
     st.subheader("🔐 Staff Access")
 
-    # ✅ Streamlit-native navigation
+    # ✅ Correct Streamlit Pages link
     st.page_link(
-        "pages/admin.py",
+        "admin",            # must match pages/admin.py
         label="Admin Login",
         icon="🔐"
     )
+
     st.stop()
 
-# ───────── CUSTOMER SESSION VIEW ─────────
+# ─────────────────────────────
+# 📱 CUSTOMER SESSION VIEW
+# ─────────────────────────────
 if not os.path.exists(DATA_FILE):
     st.warning("No active session")
     st.stop()
