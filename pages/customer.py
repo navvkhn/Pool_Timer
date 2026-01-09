@@ -10,36 +10,33 @@ st.set_page_config(
 )
 
 DATA_FILE = "data/sessions.json"
-
-# 🔄 Auto refresh every 5 seconds
 st_autorefresh(interval=5000, key="refresh")
 
-# --- Read table from QR ---
-query = st.query_params
-table = query.get("table", [None])[0]
+table = st.query_params.get("table", [None])[0]
 
 if not table:
     st.error("Invalid QR")
     st.stop()
 
 if not os.path.exists(DATA_FILE):
-    st.warning("No active session")
+    st.warning("No session")
     st.stop()
 
 data = json.load(open(DATA_FILE))
 session = data.get(table)
 
-if not session or not session.get("active"):
-    st.warning("Game not active")
+if not session:
+    st.warning("No game started")
     st.stop()
 
-elapsed_mins, bill = calculate_bill(session)
+if session.get("ended"):
+    st.success(f"Game Ended\nFinal Bill: ₹{session['final_bill']}")
+    st.stop()
+
+mins, bill = calculate_bill(session)
 
 st.title("🎱 Pool Timer")
-
-st.metric("Table", table)
-st.metric("Customer", session["customer_name"])
-st.metric("Time Elapsed", f"{elapsed_mins} mins")
+st.metric("Time Elapsed", f"{mins} mins")
 st.metric("Current Bill", f"₹{bill}")
 
 if session.get("paused"):
