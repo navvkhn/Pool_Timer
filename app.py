@@ -4,6 +4,8 @@ from datetime import datetime
 import json, os
 from utils.billing import calculate_bill
 from zoneinfo import ZoneInfo
+from utils.qr import generate_qr
+
 
 IST = ZoneInfo("Asia/Kolkata")
 
@@ -15,6 +17,24 @@ st.set_page_config(
 
 DATA_FILE = "data/sessions.json"
 os.makedirs("data", exist_ok=True)
+st.divider()
+st.subheader("📱 Customer QR & Link")
+
+app_url = st.secrets.get("APP_URL", "http://localhost:8501")
+customer_url = f"{app_url}/customer?table={table}"
+
+# Generate FIXED QR (table-based)
+qr_img = generate_qr(customer_url)
+
+st.image(qr_img, caption=f"Scan for {table}")
+
+st.markdown(
+    f"""
+    🔗 **Customer Link:**  
+    <a href="{customer_url}" target="_blank">{customer_url}</a>
+    """,
+    unsafe_allow_html=True
+)
 
 
 def load_data():
