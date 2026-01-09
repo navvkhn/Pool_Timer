@@ -9,16 +9,20 @@ DATA_FILE = "data/sessions.json"
 st_autorefresh(interval=5000, key="timer_refresh")
 
 query = st.query_params
-table = query.get("table")
+table = query.get("table", [None])[0]
 
 if not table:
     st.error("Invalid QR")
     st.stop()
 
+if not os.path.exists(DATA_FILE):
+    st.warning("No active sessions")
+    st.stop()
+
 data = json.load(open(DATA_FILE))
 session = data.get(table)
 
-if not session or not session["active"]:
+if not session or not session.get("active"):
     st.warning("Game not active")
     st.stop()
 
