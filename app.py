@@ -10,8 +10,6 @@ st.set_page_config(
 )
 
 DATA_FILE = "data/sessions.json"
-
-# 🔄 Auto refresh for customer view
 st_autorefresh(interval=5000, key="refresh")
 
 query = st.query_params
@@ -19,40 +17,22 @@ table = query.get("table", [None])[0]
 
 st.title("🎱 Pool Timer")
 
-# ─────────────────────────────
-# 🧑 CUSTOMER LANDING (NO QR SCANNED)
-# ─────────────────────────────
+# ───────── CUSTOMER LANDING ─────────
 if not table:
     st.info("Scan the QR code on your table")
 
     st.divider()
+    st.subheader("🔐 Staff Access")
 
-    # 🔐 ADMIN BUTTON (ONLY ENTRY POINT)
-    st.markdown(
-        """
-        <div style="text-align:center;">
-            <a href="/admin" target="_self">
-                <button style="
-                    padding:10px 20px;
-                    font-size:16px;
-                    border-radius:8px;
-                    border:none;
-                    background-color:#1f77b4;
-                    color:white;
-                    cursor:pointer;
-                ">
-                    🔐 Admin Login
-                </button>
-            </a>
-        </div>
-        """,
-        unsafe_allow_html=True
+    # ✅ Streamlit-native navigation
+    st.page_link(
+        "pages/admin.py",
+        label="Admin Login",
+        icon="🔐"
     )
     st.stop()
 
-# ─────────────────────────────
-# 📱 CUSTOMER SESSION VIEW
-# ─────────────────────────────
+# ───────── CUSTOMER SESSION VIEW ─────────
 if not os.path.exists(DATA_FILE):
     st.warning("No active session")
     st.stop()
