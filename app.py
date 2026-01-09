@@ -11,7 +11,7 @@ st.set_page_config(
 
 DATA_FILE = "data/sessions.json"
 
-# 🔄 Auto refresh for customer view
+# Auto refresh for customer view
 st_autorefresh(interval=5000, key="refresh")
 
 # Read table from QR
@@ -29,12 +29,17 @@ if not table:
     st.divider()
     st.subheader("🔐 Staff Access")
 
-    # ✅ Correct Streamlit Pages link
-    st.page_link(
-        "admin",            # must match pages/admin.py
-        label="Admin Login",
-        icon="🔐"
-    )
+    # Absolute URL to admin page (MOST RELIABLE)
+    app_url = st.secrets.get("APP_URL", "http://localhost:8501")
+    admin_url = f"{app_url}/admin"
+
+    if st.button("🔐 Admin Login"):
+        st.markdown(
+            f"""
+            <meta http-equiv="refresh" content="0; url={admin_url}">
+            """,
+            unsafe_allow_html=True
+        )
 
     st.stop()
 
