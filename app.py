@@ -7,4 +7,4 @@ st.set_page_config(
 )
 
 # ✅ Streamlit-native redirect
-st.switch_page("/admin.py")
+st.switch_page("pages/admin.py")
