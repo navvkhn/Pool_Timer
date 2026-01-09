@@ -1,16 +1,21 @@
 from datetime import datetime
 import math
 
-def calculate_bill(start_time, rate_per_30):
-    start = datetime.fromisoformat(start_time)
+def calculate_bill(session):
+    start = datetime.fromisoformat(session["start_time"])
     now = datetime.now()
 
-    elapsed_minutes = (now - start).total_seconds() / 60
+    paused_seconds = session.get("total_paused_seconds", 0)
 
-    # Round up to nearest 15 mins
+    if session.get("paused") and session.get("pause_start"):
+        pause_start = datetime.fromisoformat(session["pause_start"])
+        paused_seconds += (now - pause_start).total_seconds()
+
+    elapsed_seconds = (now - start).total_seconds() - paused_seconds
+    elapsed_minutes = max(0, elapsed_seconds / 60)
+
     rounded_minutes = math.ceil(elapsed_minutes / 15) * 15
-
-    rate_per_min = rate_per_30 / 30
+    rate_per_min = session["rate_per_30"] / 30
     bill = rounded_minutes * rate_per_min
 
     return int(rounded_minutes), int(bill)
