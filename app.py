@@ -6,5 +6,4 @@ st.set_page_config(
     layout="centered"
 )
 
-# ✅ Correct Streamlit page redirect
-st.switch_page("pages/1_Admin.py")
+st.switch_page("pages/admin.py")
