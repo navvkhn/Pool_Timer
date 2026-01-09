@@ -3,6 +3,9 @@ from utils.auth import verify_pin
 from datetime import datetime
 import json, os
 from utils.billing import calculate_bill
+from zoneinfo import ZoneInfo
+
+IST = ZoneInfo("Asia/Kolkata")
 
 st.set_page_config(
     page_title="Pool Timer",
@@ -51,12 +54,12 @@ rate = st.number_input("Rate (₹ / 30 mins)", value=100)
 data = load_data()
 session = data.get(table)
 
-# ▶ START GAME (ONLY ONCE)
+# ▶ START GAME
 if st.button("▶ Start Game"):
     data[table] = {
         "customer_name": name,
         "rate_per_30": rate,
-        "start_time": datetime.now().isoformat(),
+        "start_time": datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S"),
         "paused": False,
         "pause_start": None,
         "total_paused_seconds": 0,
@@ -99,15 +102,21 @@ if session and session.get("active"):
     if not session["paused"]:
         if st.button("⏸ Pause Game"):
             session["paused"] = True
-            session["pause_start"] = datetime.now().isoformat()
+            session["pause_start"] = datetime.now(IST).strftime(
+                "%Y-%m-%d %H:%M:%S"
+            )
             save_data(data)
             st.rerun()
     else:
         if st.button("▶ Resume Game"):
-            pause_start = datetime.fromisoformat(session["pause_start"])
+            pause_start = datetime.strptime(
+                session["pause_start"], "%Y-%m-%d %H:%M:%S"
+            ).replace(tzinfo=IST)
+
             session["total_paused_seconds"] += (
-                datetime.now() - pause_start
+                datetime.now(IST) - pause_start
             ).total_seconds()
+
             session["pause_start"] = None
             session["paused"] = False
             save_data(data)
