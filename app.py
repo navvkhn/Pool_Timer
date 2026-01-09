@@ -9,7 +9,7 @@ from utils.qr import generate_qr
 IST = ZoneInfo("Asia/Kolkata")
 
 st.set_page_config(
-    page_title="Pool Timer",
+    page_title="Pool Timer – Admin",
     page_icon="🎱",
     layout="centered"
 )
@@ -28,15 +28,13 @@ def save_data(data):
     json.dump(data, open(DATA_FILE, "w"), indent=2)
 
 
-# 🔐 SESSION
+# 🔐 ADMIN SESSION
 if "admin_logged_in" not in st.session_state:
     st.session_state.admin_logged_in = False
 
 st.title("🎱 Pool Timer – Admin")
 
-# ─────────────────────────────
-# 🔐 LOGIN
-# ─────────────────────────────
+# ───────── LOGIN ─────────
 if not st.session_state.admin_logged_in:
     pin = st.text_input("Enter Admin PIN", type="password")
     if st.button("Login"):
@@ -49,37 +47,25 @@ if not st.session_state.admin_logged_in:
 
 st.success("Logged in")
 
-# ─────────────────────────────
-# 🧑‍💼 ADMIN INPUTS
-# ─────────────────────────────
+# ───────── INPUTS ─────────
 table = st.selectbox("Table", ["table_1", "table_2"])
 name = st.text_input("Customer Name")
 rate = st.number_input("Rate (₹ / 30 mins)", value=100)
 
-# ─────────────────────────────
-# 📱 CUSTOMER QR & LINK (FIXED)
-# ─────────────────────────────
+# ───────── FIXED CUSTOMER QR ─────────
 st.divider()
 st.subheader("📱 Customer QR & Link")
 
 app_url = st.secrets.get("APP_URL", "http://localhost:8501")
 customer_url = f"{app_url}/customer?table={table}"
 
-qr_img = generate_qr(customer_url)
-
-st.image(qr_img, caption=f"Scan for {table}")
-
+st.image(generate_qr(customer_url), caption=f"Scan for {table}")
 st.markdown(
-    f"""
-    🔗 **Customer Link:**  
-    <a href="{customer_url}" target="_blank">{customer_url}</a>
-    """,
+    f'<a href="{customer_url}" target="_blank">{customer_url}</a>',
     unsafe_allow_html=True
 )
 
-# ─────────────────────────────
-# ▶ START GAME
-# ─────────────────────────────
+# ───────── START GAME ─────────
 data = load_data()
 session = data.get(table)
 
@@ -91,17 +77,16 @@ if st.button("▶ Start Game"):
         "paused": False,
         "pause_start": None,
         "total_paused_seconds": 0,
-        "active": True
+        "active": True,
+        "ended": False
     }
     save_data(data)
-    st.success(f"Game started on {table}")
+    st.success("Game Started")
     st.rerun()
 
-# ─────────────────────────────
-# 📊 LIVE SESSION DETAILS
-# ─────────────────────────────
+# ───────── LIVE DETAILS ─────────
 st.divider()
-st.subheader("📊 Live Session Details")
+st.subheader("📊 Live Session")
 
 data = load_data()
 session = data.get(table)
@@ -110,33 +95,28 @@ if session and session.get("active"):
     mins, bill = calculate_bill(session)
 
     st.metric("Customer", session["customer_name"])
-    st.metric("Rate", f"₹{session['rate_per_30']} / 30 mins")
-    st.metric("Start Time", session["start_time"])
-    st.metric("Time Elapsed", f"{mins} mins")
-    st.metric("Current Bill", f"₹{bill}")
+    st.metric("Elapsed", f"{mins} mins")
+    st.metric("Bill", f"₹{bill}")
 
-    if session.get("paused"):
-        st.warning("⏸ Game Paused")
+    if session["paused"]:
+        st.warning("⏸ Paused")
+
 else:
-    st.info("No active game on this table")
+    st.info("No active game")
 
-# ─────────────────────────────
-# ⏸ PAUSE / RESUME CONTROLS
-# ─────────────────────────────
+# ───────── PAUSE / RESUME ─────────
 st.divider()
-st.subheader("⏸ Pool Controls")
+st.subheader("⏸ Controls")
 
 if session and session.get("active"):
     if not session["paused"]:
-        if st.button("⏸ Pause Game"):
+        if st.button("⏸ Pause"):
             session["paused"] = True
-            session["pause_start"] = datetime.now(IST).strftime(
-                "%Y-%m-%d %H:%M:%S"
-            )
+            session["pause_start"] = datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S")
             save_data(data)
             st.rerun()
     else:
-        if st.button("▶ Resume Game"):
+        if st.button("▶ Resume"):
             pause_start = datetime.strptime(
                 session["pause_start"], "%Y-%m-%d %H:%M:%S"
             ).replace(tzinfo=IST)
@@ -149,14 +129,25 @@ if session and session.get("active"):
             session["paused"] = False
             save_data(data)
             st.rerun()
-else:
-    st.info("No active game to control")
 
+# ───────── END GAME (NEW) ─────────
 st.divider()
+st.subheader("⛔ End Game")
 
-# ─────────────────────────────
-# 🔓 LOGOUT
-# ─────────────────────────────
+if session and session.get("active"):
+    if st.button("⛔ End Game"):
+        mins, bill = calculate_bill(session)
+        session["active"] = False
+        session["ended"] = True
+        session["end_time"] = datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S")
+        session["final_minutes"] = mins
+        session["final_bill"] = bill
+        save_data(data)
+        st.success(f"Game Ended — Final Bill ₹{bill}")
+        st.rerun()
+
+# ───────── LOGOUT ─────────
+st.divider()
 if st.button("Logout"):
     st.session_state.admin_logged_in = False
     st.rerun()
