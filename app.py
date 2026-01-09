@@ -3,19 +3,6 @@ import json, os
 from utils.billing import calculate_bill
 from streamlit_autorefresh import st_autorefresh
 
-# 🔑 Detect current page
-from streamlit.runtime.scriptrunner import get_script_run_ctx
-
-ctx = get_script_run_ctx()
-if ctx and ctx.page_script_hash != ctx.main_script_hash:
-    # We are NOT on the main app (e.g. /admin)
-    # Do NOT render customer UI
-    st.stop()
-
-# ─────────────────────────────
-# CUSTOMER ROOT APP
-# ─────────────────────────────
-
 st.set_page_config(
     page_title="Pool Timer",
     page_icon="🎱",
@@ -23,19 +10,26 @@ st.set_page_config(
 )
 
 DATA_FILE = "data/sessions.json"
+
+# 🔄 Auto refresh for customer view
 st_autorefresh(interval=5000, key="refresh")
 
+# Read table from QR
 query = st.query_params
 table = query.get("table", [None])[0]
 
 st.title("🎱 Pool Timer")
 
-# ───────── LANDING ─────────
+# ─────────────────────────────
+# 🧑 CUSTOMER LANDING (NO QR)
+# ─────────────────────────────
 if not table:
     st.info("Scan the QR code on your table")
     st.stop()
 
-# ───────── CUSTOMER SESSION ─────────
+# ─────────────────────────────
+# 📱 CUSTOMER SESSION VIEW
+# ─────────────────────────────
 if not os.path.exists(DATA_FILE):
     st.warning("No active session")
     st.stop()
