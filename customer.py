@@ -1,12 +1,11 @@
 import streamlit as st
-import json
+import json, os
 from utils.billing import calculate_bill
 from streamlit_autorefresh import st_autorefresh
 
 DATA_FILE = "data/sessions.json"
 
-# 🔄 AUTO REFRESH EVERY 5 SECONDS
-st_autorefresh(interval=5000, key="timer_refresh")
+st_autorefresh(interval=5000, key="refresh")
 
 query = st.query_params
 table = query.get("table", [None])[0]
@@ -16,7 +15,7 @@ if not table:
     st.stop()
 
 if not os.path.exists(DATA_FILE):
-    st.warning("No active sessions")
+    st.warning("No active session")
     st.stop()
 
 data = json.load(open(DATA_FILE))
@@ -32,7 +31,7 @@ st.title("🎱 Pool Timer")
 
 st.metric("Customer", session["customer_name"])
 st.metric("Table", table)
-st.metric("Time Elapsed", f"{mins} mins")
+st.metric("Elapsed Time", f"{mins} mins")
 st.metric("Current Bill", f"₹{bill}")
 
 if session.get("paused"):
