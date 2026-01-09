@@ -13,7 +13,7 @@ st.set_page_config(
     page_icon="🎱",
     layout="centered"
 )
-
+ 
 DATA_FILE = "data/sessions.json"
 os.makedirs("data", exist_ok=True)
 
