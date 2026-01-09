@@ -6,7 +6,6 @@ from utils.billing import calculate_bill
 from zoneinfo import ZoneInfo
 from utils.qr import generate_qr
 
-
 IST = ZoneInfo("Asia/Kolkata")
 
 st.set_page_config(
@@ -17,24 +16,6 @@ st.set_page_config(
 
 DATA_FILE = "data/sessions.json"
 os.makedirs("data", exist_ok=True)
-st.divider()
-st.subheader("📱 Customer QR & Link")
-
-app_url = st.secrets.get("APP_URL", "http://localhost:8501")
-customer_url = f"{app_url}/customer?table={table}"
-
-# Generate FIXED QR (table-based)
-qr_img = generate_qr(customer_url)
-
-st.image(qr_img, caption=f"Scan for {table}")
-
-st.markdown(
-    f"""
-    🔗 **Customer Link:**  
-    <a href="{customer_url}" target="_blank">{customer_url}</a>
-    """,
-    unsafe_allow_html=True
-)
 
 
 def load_data():
@@ -53,7 +34,9 @@ if "admin_logged_in" not in st.session_state:
 
 st.title("🎱 Pool Timer – Admin")
 
+# ─────────────────────────────
 # 🔐 LOGIN
+# ─────────────────────────────
 if not st.session_state.admin_logged_in:
     pin = st.text_input("Enter Admin PIN", type="password")
     if st.button("Login"):
@@ -66,15 +49,40 @@ if not st.session_state.admin_logged_in:
 
 st.success("Logged in")
 
+# ─────────────────────────────
 # 🧑‍💼 ADMIN INPUTS
+# ─────────────────────────────
 table = st.selectbox("Table", ["table_1", "table_2"])
 name = st.text_input("Customer Name")
 rate = st.number_input("Rate (₹ / 30 mins)", value=100)
 
+# ─────────────────────────────
+# 📱 CUSTOMER QR & LINK (FIXED)
+# ─────────────────────────────
+st.divider()
+st.subheader("📱 Customer QR & Link")
+
+app_url = st.secrets.get("APP_URL", "http://localhost:8501")
+customer_url = f"{app_url}/customer?table={table}"
+
+qr_img = generate_qr(customer_url)
+
+st.image(qr_img, caption=f"Scan for {table}")
+
+st.markdown(
+    f"""
+    🔗 **Customer Link:**  
+    <a href="{customer_url}" target="_blank">{customer_url}</a>
+    """,
+    unsafe_allow_html=True
+)
+
+# ─────────────────────────────
+# ▶ START GAME
+# ─────────────────────────────
 data = load_data()
 session = data.get(table)
 
-# ▶ START GAME
 if st.button("▶ Start Game"):
     data[table] = {
         "customer_name": name,
@@ -146,7 +154,9 @@ else:
 
 st.divider()
 
+# ─────────────────────────────
 # 🔓 LOGOUT
+# ─────────────────────────────
 if st.button("Logout"):
     st.session_state.admin_logged_in = False
     st.rerun()
