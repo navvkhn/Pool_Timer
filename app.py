@@ -6,6 +6,11 @@ st.set_page_config(
     layout="centered"
 )
 
-st.title("🎱 Pool Timer")
-
-st.info("Use sidebar to navigate.\n\nAdmin → Start / Pause pool\nCustomer → Scan QR")
+st.markdown(
+    """
+    <div style="text-align:center; margin-top:40vh;">
+        <h1>🎱 Pool Timer</h1>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
