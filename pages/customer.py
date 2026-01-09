@@ -11,9 +11,10 @@ st.set_page_config(
 
 DATA_FILE = "data/sessions.json"
 
-# 🔄 LIVE REFRESH
+# 🔄 Auto refresh every 5 seconds
 st_autorefresh(interval=5000, key="refresh")
 
+# --- Read table from QR ---
 query = st.query_params
 table = query.get("table", [None])[0]
 
@@ -32,13 +33,13 @@ if not session or not session.get("active"):
     st.warning("Game not active")
     st.stop()
 
-mins, bill = calculate_bill(session)
+elapsed_mins, bill = calculate_bill(session)
 
 st.title("🎱 Pool Timer")
 
-st.metric("Customer", session["customer_name"])
 st.metric("Table", table)
-st.metric("Elapsed Time", f"{mins} mins")
+st.metric("Customer", session["customer_name"])
+st.metric("Time Elapsed", f"{elapsed_mins} mins")
 st.metric("Current Bill", f"₹{bill}")
 
 if session.get("paused"):
