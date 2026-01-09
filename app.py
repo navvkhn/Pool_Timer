@@ -29,17 +29,15 @@ if not table:
     st.divider()
     st.subheader("🔐 Staff Access")
 
-    # Absolute URL to admin page (MOST RELIABLE)
+    # Absolute admin URL (RELIABLE)
     app_url = st.secrets.get("APP_URL", "http://localhost:8501")
     admin_url = f"{app_url}/admin"
 
-    if st.button("🔐 Admin Login"):
-        st.markdown(
-            f"""
-            <meta http-equiv="refresh" content="0; url={admin_url}">
-            """,
-            unsafe_allow_html=True
-        )
+    # ✅ This WORKS on Streamlit Cloud
+    st.link_button(
+        "🔐 Admin Login",
+        admin_url
+    )
 
     st.stop()
 
