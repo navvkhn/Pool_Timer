@@ -2,7 +2,7 @@ import streamlit as st
 from utils.auth import verify_pin
 from datetime import datetime
 import json, os
-from utils.qr import generate_qr
+from utils.billing import calculate_bill
 
 st.set_page_config(
     page_title="Pool Timer",
@@ -43,7 +43,7 @@ if not st.session_state.admin_logged_in:
 
 st.success("Logged in")
 
-# 🧑‍💼 ADMIN CONTROLS
+# 🧑‍💼 ADMIN INPUTS
 table = st.selectbox("Table", ["table_1", "table_2"])
 name = st.text_input("Customer Name")
 rate = st.number_input("Rate (₹ / 30 mins)", value=100)
@@ -51,7 +51,7 @@ rate = st.number_input("Rate (₹ / 30 mins)", value=100)
 data = load_data()
 session = data.get(table)
 
-# ▶ START GAME
+# ▶ START GAME (ONLY ONCE)
 if st.button("▶ Start Game"):
     data[table] = {
         "customer_name": name,
@@ -63,19 +63,37 @@ if st.button("▶ Start Game"):
         "active": True
     }
     save_data(data)
+    st.success(f"Game started on {table}")
+    st.rerun()
 
-    app_url = st.secrets.get("APP_URL", "http://localhost:8501")
-    qr_url = f"{app_url}/customer?table={table}"
-    qr = generate_qr(qr_url)
-
-    st.image(qr, caption="Customer QR Code")
-    st.success("Game Started")
-
+# ─────────────────────────────
+# 📊 LIVE SESSION DETAILS
+# ─────────────────────────────
 st.divider()
-st.subheader("⏸ Pool Controls")
+st.subheader("📊 Live Session Details")
 
 data = load_data()
 session = data.get(table)
+
+if session and session.get("active"):
+    mins, bill = calculate_bill(session)
+
+    st.metric("Customer", session["customer_name"])
+    st.metric("Rate", f"₹{session['rate_per_30']} / 30 mins")
+    st.metric("Start Time", session["start_time"])
+    st.metric("Time Elapsed", f"{mins} mins")
+    st.metric("Current Bill", f"₹{bill}")
+
+    if session.get("paused"):
+        st.warning("⏸ Game Paused")
+else:
+    st.info("No active game on this table")
+
+# ─────────────────────────────
+# ⏸ PAUSE / RESUME CONTROLS
+# ─────────────────────────────
+st.divider()
+st.subheader("⏸ Pool Controls")
 
 if session and session.get("active"):
     if not session["paused"]:
@@ -95,7 +113,7 @@ if session and session.get("active"):
             save_data(data)
             st.rerun()
 else:
-    st.info("No active game on this table")
+    st.info("No active game to control")
 
 st.divider()
 
